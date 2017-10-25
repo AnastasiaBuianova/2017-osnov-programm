@@ -1,0 +1,66 @@
+import sys
+import re
+
+#Fran's code with my adoptation for my corpus
+
+# read all of the input lines in our tagged corpus
+lines = open('tagged_corpus.txt', 'r', encoding='utf-8')
+f = open('model.tsv', 'w', encoding='utf-8')
+
+tag_count = {}
+words = {}
+words_of_word = {}
+total = 0
+
+for line in lines:
+    if '\t' not in line:
+        continue
+        
+    # split the line into a list of cells in the row
+    row = line.split('\t')
+    if '.' in row[0] or '-' in row[0]:
+        continue
+    # get the tag from the 4th column and put it in a variable
+    tag = row[3]
+    if tag == '_':
+        continue
+    # if we haven't seen the tag before then initialise the count to 0
+    if tag not in tag_count:
+        tag_count[tag] = 0
+    tag_count[tag] = tag_count[tag] + 1
+    # get the surface form from the 2nd column
+    word = row[1]
+    if word == '_':
+        continue
+    # if we haven't seen the word before then initialise the word counter to 0
+    if word not in words_of_word: 
+        words_of_word[word] = 0
+    words_of_word[word] = words_of_word[word] + 1
+    # if we haven't seen the word before then initialise it to an empty dict
+    if word not in words:
+        words[word] = {}
+    # if we haven't seen the tag GIVEN the word before, initialise it to 0
+    if tag not in words[word]:
+        words[word][tag] = 0
+    words[word][tag] = words[word][tag] + 1
+    total = total + 1
+    #print(tag_count[tag], tag, row)
+# {'ADJ': 2, 'NOUN': 5, 'NUM': 2, '_': 80, 'PROPN': 3}                                                       
+
+for tag in tag_count:
+    freq = tag_count[tag]/total
+    #print('%.2f\t%d\t%s\t%s' % (freq, tag_count[tag], tag, '_'))
+
+# for each of the words in the matrix
+for word in words:
+    # for each of the tag
+    for tag in words[word]:
+        freq = words[word][tag]/words_of_word[word]
+        f.write('%.2f\t%d\t%s\t%s' % (freq, words[word][tag], tag, word))
+
+        #print('%.2f\t%d\t%s\t%s' % (freq, words[word][tag], tag, word))
+        # %.2f = floating point number with 2 degrees of precision = 0.03
+        # %d = integer
+        # %s = string
+f.close()        
+lines.close()
